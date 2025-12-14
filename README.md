@@ -66,6 +66,7 @@ En los frames donde los dados están detenidos se muestra:
 ## Autores
 
 ESTEVA MATIAS
+
 PRIETO TOBIAS
 
 Trabajo práctico realizado como parte de la materia **Procesamiento de Imágenes de la Tecnicatura en Inteligencia Artificial**. Año 2025.
