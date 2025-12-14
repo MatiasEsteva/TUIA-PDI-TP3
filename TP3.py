@@ -21,18 +21,18 @@ def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, color
 
 def detectar_roi(video):
     # Leer video 
-    cap = cv2.VideoCapture(video)  # Abre el archivo de video especificado para su lectura.
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Obtiene el ancho del video en píxeles usando la propiedad CAP_PROP_FRAME_WIDTH.
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # Obtiene la altura del video en píxeles usando la propiedad CAP_PROP_FRAME_HEIGHT.
+    cap = cv2.VideoCapture(video)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     frame_number = 0
-    while (cap.isOpened()): # Verifica si el video se abrió correctamente.
+    while (cap.isOpened()):
 
-        ret, frame = cap.read() # 'ret' indica si la lectura fue exitosa (True/False) y 'frame' contiene el contenido del frame si la lectura fue exitosa.
+        ret, frame = cap.read()
 
         if ret == True:  
 
-            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3))) # Redimensiona el frame capturado.
+            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))
 
             # Detectar fondo verde unicamente en el primer frame para obtener las coordenadas del ROI
             if frame_number == 0:
@@ -44,10 +44,8 @@ def detectar_roi(video):
                 ix_s = np.logical_and(s > 256 * 0.3, s < 256)
                 ix = np.logical_and(ix_h, ix_s)
 
-                # Mascara binaria
                 mask = (ix.astype(np.uint8)) * 255
 
-                # Encontrar contorno mas grande
                 contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 c = max(contours, key=cv2.contourArea)
                 x, y, w, h_roi = cv2.boundingRect(c)
@@ -55,7 +53,7 @@ def detectar_roi(video):
 
             frame_crop = frame[y:y+h_roi, x:x+w]
 
-            #cv2.imshow('Frame', frame_crop)   (Descomentar para ver todo el video recortado)
+            #cv2.imshow('Frame', frame_crop)
 
             frame_number += 1
             if cv2.waitKey(25) & 0xFF == ord('q'): # Espera 25 milisegundos a que se presione una tecla. Si se presiona 'q' se rompe el bucle y se cierra la ventana.
@@ -63,16 +61,15 @@ def detectar_roi(video):
         else:  
             break  
 
-    cap.release() # Libera el objeto 'cap', cerrando el archivo.
-    cv2.destroyAllWindows() # Cierra todas las ventanas abiertas.
+    cap.release()
+    cv2.destroyAllWindows()
     return (x, y, w, h_roi)
 
 
 def encontrar_frames_quietos(video, roi):
-    # Leer video 
-    cap = cv2.VideoCapture(video)  # Abre el archivo de video especificado para su lectura.
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Obtiene el ancho del video en píxeles usando la propiedad CAP_PROP_FRAME_WIDTH.
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # Obtiene la altura del video en píxeles usando la propiedad CAP_PROP_FRAME_HEIGHT.
+    cap = cv2.VideoCapture(video)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     x, y, w, h = roi
     frame_number = 0
@@ -82,13 +79,13 @@ def encontrar_frames_quietos(video, roi):
     UMBRAL_MOVIMIENTO = 500
     frames_quietos = []
 
-    while (cap.isOpened()): # Verifica si el video se abrió correctamente.
+    while (cap.isOpened()): 
 
-        ret, frame = cap.read() # 'ret' indica si la lectura fue exitosa (True/False) y 'frame' contiene el contenido del frame si la lectura fue exitosa.
+        ret, frame = cap.read()
 
         if ret == True:  
 
-            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3))) # Redimensiona el frame capturado.
+            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))
 
             frame_crop = frame[y:y+h, x:x+w] # Recortar el frame a las dimensiones obtenidas con la funcion anterior
 
@@ -112,16 +109,16 @@ def encontrar_frames_quietos(video, roi):
             frame_prev = blur.copy()
 
 
-            #cv2.imshow('Frame', frame_crop) # Muestra el frame redimensionado.
+            #cv2.imshow('Frame', frame_crop)
 
             frame_number += 1
-            if cv2.waitKey(25) & 0xFF == ord('q'): # Espera 25 milisegundos a que se presione una tecla. Si se presiona 'q' se rompe el bucle y se cierra la ventana.
+            if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
         else:  
             break  
 
-    cap.release() # Libera el objeto 'cap', cerrando el archivo.
-    cv2.destroyAllWindows() # Cierra todas las ventanas abiertas.
+    cap.release()
+    cv2.destroyAllWindows()
     return frames_quietos
 
 
@@ -139,14 +136,12 @@ def procesar_frame_quieto(frame_crop):
 
     mask_red = np.logical_and(np.logical_or(ix_h1, ix_h2), ix_s)
 
-    # Mascara binaria
     mask_red = mask_red.astype(np.uint8) * 255
 
     # Rellenar huecos con clausura
     kernel = np.ones((7, 7), np.uint8)
     mask_solida = cv2.morphologyEx(mask_red, cv2.MORPH_CLOSE, kernel)
 
-    # Contornos externos
     contornos, _ = cv2.findContours(mask_solida, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if len(contornos) == 0:
@@ -161,10 +156,8 @@ def procesar_frame_quieto(frame_crop):
         x, y, w, h = cv2.boundingRect(c)
         roi_gray = img_gray[y:y+h, x:x+w] # Crear crop de cada dado en escala de grises
 
-        # Umbralado
         _, mask_puntos = cv2.threshold(roi_gray, 180, 255, cv2.THRESH_BINARY)
 
-        # Componentes conectadas para encontrar la cantidad de puntos
         num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask_puntos, connectivity=8)
 
         numero_puntos = 0
@@ -181,10 +174,9 @@ def procesar_frame_quieto(frame_crop):
 
 
 def generar_video_salida(video, roi, frames_quietos):
-    # Leer video 
-    cap = cv2.VideoCapture(video)  # Abre el archivo de video especificado para su lectura.
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # Obtiene el ancho del video en píxeles usando la propiedad CAP_PROP_FRAME_WIDTH.
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # Obtiene la altura del video en píxeles usando la propiedad CAP_PROP_FRAME_HEIGHT.
+    cap = cv2.VideoCapture(video)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     x, y, w, h = roi
@@ -197,13 +189,13 @@ def generar_video_salida(video, roi, frames_quietos):
     
     frame_number = 0
     ya_impreso = False
-    while (cap.isOpened()): # Verifica si el video se abrió correctamente.
+    while (cap.isOpened()):
 
-        ret, frame = cap.read() # 'ret' indica si la lectura fue exitosa (True/False) y 'frame' contiene el contenido del frame si la lectura fue exitosa.
+        ret, frame = cap.read()
 
         if ret == True:  
 
-            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3))) # Redimensiona el frame capturado.
+            frame = cv2.resize(frame, dsize=(int(width/3), int(height/3)))
 
             frame_crop = frame[y:y+h, x:x+w]
 
@@ -234,18 +226,18 @@ def generar_video_salida(video, roi, frames_quietos):
 
                     ya_impreso = True
 
-            cv2.imshow('Resultado', frame_crop) # Muestra el frame redimensionado.
+            cv2.imshow('Resultado', frame_crop)
 
             out.write(frame_crop)
             frame_number += 1
 
-            if cv2.waitKey(25) & 0xFF == ord('q'): # Espera 25 milisegundos a que se presione una tecla. Si se presiona 'q' se rompe el bucle y se cierra la ventana.
+            if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
         else:  
             break  
 
-    cap.release() # Libera el objeto 'cap', cerrando el archivo.
-    cv2.destroyAllWindows() # Cierra todas las ventanas abiertas.
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 
@@ -261,7 +253,3 @@ for video in nombres_videos:
     frames_quietos = encontrar_frames_quietos(video, roi)
     generar_video_salida(video, roi, frames_quietos)
     print('\n')
-
-
-
-
