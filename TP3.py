@@ -197,6 +197,7 @@ def generar_video_salida(video, roi, frames_quietos):
     out = cv2.VideoWriter(nombre_salida, fourcc, fps, (w, h))
     
     frame_number = 0
+    ya_impreso = False
     while (cap.isOpened()): # Verifica si el video se abrió correctamente.
 
         ret, frame = cap.read() # 'ret' indica si la lectura fue exitosa (True/False) y 'frame' contiene el contenido del frame si la lectura fue exitosa.
@@ -211,9 +212,6 @@ def generar_video_salida(video, roi, frames_quietos):
 
                 resultados = procesar_frame_quieto(frame_crop)
 
-                # Ordenar dados de izquierda a derecha (opcional pero recomendado)
-                resultados = sorted(resultados, key=lambda r: r[0][0])
-
                 for idx, ((x_d, y_d, w_d, h_d), numero) in enumerate(resultados, start=1):
 
                     etiqueta = f"Dado {idx}: {numero}"
@@ -222,6 +220,20 @@ def generar_video_salida(video, roi, frames_quietos):
 
                     cv2.putText(frame_crop, etiqueta, (x_d, y_d - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
+
+                if not ya_impreso and len(resultados) > 0:
+                    suma = sum(numero for (_, numero) in resultados)
+
+                    for idx, (_, numero) in enumerate(resultados, start=1):
+                        print(f"Dado {idx}: {numero}")
+
+                    print(f"Suma total: {suma}")
+
+                    nombre_img = f"imagen_resultado_{video}.png"
+                    cv2.imwrite(nombre_img, frame_crop)
+                    print(f"Imagen guardada: {nombre_img}")
+
+                    ya_impreso = True
 
             cv2.imshow('Resultado', frame_crop) # Muestra el frame redimensionado.
 
