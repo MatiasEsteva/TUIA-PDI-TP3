@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 
 def imshow(img, new_fig=True, title=None, color_img=False, blocking=False, colorbar=False, ticks=False):
@@ -229,7 +228,7 @@ def generar_video_salida(video, roi, frames_quietos):
 
                     print(f"Suma total: {suma}")
 
-                    nombre_img = f"imagen_resultado_{video}.png"
+                    nombre_img = f"imagen_resultado_{video[:8]}.png"
                     cv2.imwrite(nombre_img, frame_crop)
                     print(f"Imagen guardada: {nombre_img}")
 
